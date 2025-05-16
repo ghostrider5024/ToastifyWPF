@@ -1,0 +1,28 @@
+name: Build & Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Tự động chạy khi bạn push 1 Git tag như v1.0.0
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'  # hoặc 7.0.x nếu bạn dùng net7
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build and pack
+      run: dotnet pack ToastifyWPF/ToastifyWPF.csproj -c Release -o ./nupkg
+
+    - name: Publish to NuGet
+      run: dotnet nuget push ./nupkg/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

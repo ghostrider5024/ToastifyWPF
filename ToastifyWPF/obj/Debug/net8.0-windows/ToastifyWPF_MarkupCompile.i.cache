@@ -16,5 +16,5 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 198-556154604
 Controls\ToastNotification.xaml;UI\ToastHost.xaml;
 
-True
+False
 

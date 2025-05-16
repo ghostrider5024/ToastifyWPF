@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ToastifyWPF")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+37ed73abf39beb145010ca3f367769e5795c52a0")]
 [assembly: System.Reflection.AssemblyProductAttribute("ToastifyWPF")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ToastifyWPF")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -13,7 +13,8 @@ on:
 jobs:
   build:
     runs-on: windows-latest
-
+    env:
+      PROJECT_NAME: ToastifyWPF
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -51,7 +52,7 @@ jobs:
       run: dotnet build ToastifyWPF/ToastifyWPF.csproj -c Release
 
     - name: Pack with version from tag
-      run: dotnet pack ToastifyWPF/ToastifyWPF.csproj -c Release -o ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }} --no-build
+      run: dotnet pack ${{ env.PROJECT_NAME }}/${{ env.PROJECT_NAME }}.csproj -c Release -o ./nupkg /p:PackageVersion=${{ steps.version.outputs.version }} --no-build
 
     - name: Publish to NuGet
-      run: dotnet nuget push ./nupkg /${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ./nupkg/${{ env.PROJECT_NAME }}.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json

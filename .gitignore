@@ -3,6 +3,27 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/main/VisualStudio.gitignore
 
+# Build results
+**/bin/
+**/obj/
+
+# VS user settings
+.vs/
+*.user
+*.suo
+
+# NuGet packages
+packages/
+*.nupkg
+*.snupkg
+
+# Logs and stuff
+*.log
+
+# Publish outputs
+*.publish/
+
+
 # User-specific files
 *.rsuser
 *.suo

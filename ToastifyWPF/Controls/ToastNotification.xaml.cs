@@ -6,7 +6,6 @@ using System.Windows.Input;
 using System.Windows;
 
 using ToastifyWPF.Models;
-using System.Windows.Media;
 using ToastifyWPF.Enums;
 
 namespace ToastifyWPF.Controls

@@ -11,72 +11,97 @@ using ToastifyWPF.Enums;
 namespace ToastifyWPF.Controls
 {
     /// <summary>
-    /// Interaction logic for ToastNotification.xaml
+    /// ToastNotification là một UserControl dùng để hiển thị thông báo dạng "toast" với hiệu ứng hiển thị, tự động ẩn sau một khoảng thời gian.
+    /// Hỗ trợ animation vào-ra, fill animation, và có thể tuỳ biến theme.
     /// </summary>
     public partial class ToastNotification : UserControl
     {
-        #region DP
+        #region Dependency Properties (Các thuộc tính có thể binding)
+
+        /// <summary>
+        /// Thời gian thông báo được hiển thị trước khi tự động ẩn (mặc định: 3 giây)
+        /// </summary>
         public TimeSpan DisplayDuration
         {
-            get { return (TimeSpan)GetValue(DisplayDurationProperty); }
-            set { SetValue(DisplayDurationProperty, value); }
+            get => (TimeSpan)GetValue(DisplayDurationProperty);
+            set => SetValue(DisplayDurationProperty, value);
         }
 
         public static readonly DependencyProperty DisplayDurationProperty =
-            DependencyProperty.Register(nameof(DisplayDuration)
-                , typeof(TimeSpan), typeof(ToastNotification)
-                , new PropertyMetadata(TimeSpan.FromSeconds(3)));
+            DependencyProperty.Register(nameof(DisplayDuration), typeof(TimeSpan), typeof(ToastNotification),
+                new PropertyMetadata(TimeSpan.FromSeconds(3)));
 
+        /// <summary>
+        /// Thời lượng cho các animation vào-ra (mặc định: 300ms)
+        /// </summary>
         public TimeSpan AnimationDuration
         {
-            get { return (TimeSpan)GetValue(AnimationDurationProperty); }
-            set { SetValue(AnimationDurationProperty, value); }
+            get => (TimeSpan)GetValue(AnimationDurationProperty);
+            set => SetValue(AnimationDurationProperty, value);
         }
 
         public static readonly DependencyProperty AnimationDurationProperty =
-            DependencyProperty.Register(nameof(AnimationDuration)
-                , typeof(TimeSpan), typeof(ToastNotification)
-                , new PropertyMetadata(TimeSpan.FromMilliseconds(300)));
-       
+            DependencyProperty.Register(nameof(AnimationDuration), typeof(TimeSpan), typeof(ToastNotification),
+                new PropertyMetadata(TimeSpan.FromMilliseconds(300)));
+
+        /// <summary>
+        /// Bo góc của thông báo
+        /// </summary>
         public CornerRadius CornerRadius
         {
-            get { return (CornerRadius)GetValue(CornerRadiusProperty); }
-            set { SetValue(CornerRadiusProperty, value); }
+            get => (CornerRadius)GetValue(CornerRadiusProperty);
+            set => SetValue(CornerRadiusProperty, value);
         }
 
         public static readonly DependencyProperty CornerRadiusProperty =
-            DependencyProperty.Register(nameof(CornerRadius)
-                , typeof(CornerRadius), typeof(ToastNotification)
-                , new PropertyMetadata(new CornerRadius(6)));
+            DependencyProperty.Register(nameof(CornerRadius), typeof(CornerRadius), typeof(ToastNotification),
+                new PropertyMetadata(new CornerRadius(6)));
 
-
+        /// <summary>
+        /// Context định nghĩa animation storyboard cho transition vào-ra
+        /// </summary>
         public StoryBoardContext? StoryBoardContext
         {
-            get { return (StoryBoardContext)GetValue(StoryBoardContextProperty); }
-            set { SetValue(StoryBoardContextProperty, value); }
+            get => (StoryBoardContext)GetValue(StoryBoardContextProperty);
+            set => SetValue(StoryBoardContextProperty, value);
         }
 
         public static readonly DependencyProperty StoryBoardContextProperty =
-            DependencyProperty.Register(nameof(StopStoryboard)
-                , typeof(StoryBoardContext), typeof(ToastNotification)
-                , new PropertyMetadata(null));
+            DependencyProperty.Register(nameof(StoryBoardContext), typeof(StoryBoardContext), typeof(ToastNotification),
+                new PropertyMetadata(null));
 
+        /// <summary>
+        /// Theme hiện tại của thông báo (màu sắc, icon, kiểu nền...)
+        /// </summary>
         public ToastNotificationTheme ToastNotificationTheme
         {
-            get { return (ToastNotificationTheme)GetValue(ToastNotificationThemeProperty); }
-            set { SetValue(ToastNotificationThemeProperty, value); }
+            get => (ToastNotificationTheme)GetValue(ToastNotificationThemeProperty);
+            set => SetValue(ToastNotificationThemeProperty, value);
         }
 
         public static readonly DependencyProperty ToastNotificationThemeProperty =
-            DependencyProperty.Register(nameof(ToastNotificationTheme)
-                , typeof(ToastNotificationTheme), typeof(ToastNotification)
-                , new PropertyMetadata(default));
+            DependencyProperty.Register(nameof(ToastNotificationTheme), typeof(ToastNotificationTheme), typeof(ToastNotification),
+                new PropertyMetadata(default));
 
+        /// <summary>
+        /// Dữ liệu nội dung của thông báo (text, loại thông báo, v.v.)
+        /// </summary>
+        public ToastNotificationData Data
+        {
+            get => (ToastNotificationData)GetValue(DataProperty);
+            set => SetValue(DataProperty, value);
+        }
 
+        public static readonly DependencyProperty DataProperty =
+            DependencyProperty.Register(nameof(Data), typeof(ToastNotificationData), typeof(ToastNotification),
+                new PropertyMetadata(default));
+        #endregion
 
-        #endregion DP
+        #region Sự kiện
 
-        #region Events
+        /// <summary>
+        /// Sự kiện được raise khi toast bắt đầu hiển thị
+        /// </summary>
         public event RoutedEventHandler OnOpen
         {
             add => AddHandler(OnOpenEvent, value);
@@ -84,11 +109,11 @@ namespace ToastifyWPF.Controls
         }
 
         public static readonly RoutedEvent OnOpenEvent = EventManager.RegisterRoutedEvent(
-                nameof(OnOpen),
-                RoutingStrategy.Bubble,
-                typeof(RoutedEventHandler),
-                typeof(ToastNotification));
+            nameof(OnOpen), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(ToastNotification));
 
+        /// <summary>
+        /// Sự kiện được raise khi toast kết thúc (ẩn đi)
+        /// </summary>
         public event RoutedEventHandler OnClose
         {
             add => AddHandler(OnCloseEvent, value);
@@ -96,16 +121,14 @@ namespace ToastifyWPF.Controls
         }
 
         public static readonly RoutedEvent OnCloseEvent = EventManager.RegisterRoutedEvent(
-                nameof(OnClose),
-                RoutingStrategy.Bubble,
-                typeof(RoutedEventHandler),
-                typeof(ToastNotification));
-        #endregion Events
+            nameof(OnClose), RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(ToastNotification));
+        #endregion
+
+        #region Biến cục bộ
 
         DispatcherTimer timer;
-
         private int currentTime = 0;
-        private readonly int intervalTime = 1000;
+        private readonly int intervalTime = 1000; // ms
         private bool mouseEntering = false;
         private bool isFirstRender = true;
 
@@ -116,9 +139,9 @@ namespace ToastifyWPF.Controls
 
         private AnimationTimeline fillOutAnimation;
         private AnimationTimeline fillInAnimation;
+        #endregion
 
-        private ToastNotificationData? data;
-
+        #region Constructor
         public ToastNotification(ToastNotificationData toastNotificationData)
         {
             InitializeComponent();
@@ -130,12 +153,12 @@ namespace ToastifyWPF.Controls
             InitializeComponent();
             Prepare();
         }
+        #endregion
 
+        #region Chuẩn bị khởi tạo
         private void Prepare(ToastNotificationData? toastNotificationData = null)
         {
-            data = toastNotificationData;
-
-           
+            Data = toastNotificationData;
             SetupFillOutStoryboard();
             SetupFillInStoryboard();
             SetupTransitions();
@@ -144,8 +167,7 @@ namespace ToastifyWPF.Controls
 
         private void ApplyTheme(ToastThemeEnum theme, ToastTypeEnum type)
         {
-            ToastNotificationTheme = ToastNotificationTheme 
-                ?? ToastNotificationTheme.InitTheme(theme, type);
+            ToastNotificationTheme = ToastNotificationTheme ?? ToastNotificationTheme.InitTheme(theme, type);
         }
 
         private void InitTimer()
@@ -154,17 +176,27 @@ namespace ToastifyWPF.Controls
             {
                 Interval = TimeSpan.FromMilliseconds(intervalTime)
             };
+
             timer.Tick += (s, e) =>
             {
                 if (mouseEntering) return;
+
                 currentTime += intervalTime;
+
                 if (currentTime >= DisplayDuration.TotalMilliseconds)
                 {
                     Hide();
                 }
             };
         }
-        
+        #endregion
+
+        #region Tương tác chuột
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            Reset();
+        }
 
         protected override void OnMouseEnter(MouseEventArgs e)
         {
@@ -180,94 +212,103 @@ namespace ToastifyWPF.Controls
             ResumeFillOutAnimtion();
         }
 
-        private void CloseButton_Click(object sender, RoutedEventArgs e)
-        {
-            Hide();
-        }
+        #endregion
 
+        #region Public API
+
+        /// <summary>
+        /// Hiển thị toast với dữ liệu mới
+        /// </summary>
         public void Show(ToastNotificationData toastNotificationData)
         {
-            data = toastNotificationData;
+            Root.Width = MinWidth;
+            Data = toastNotificationData;
+
+            Dispatcher.BeginInvoke(() =>
+            {
+                Root.Width = double.NaN;
+            }, DispatcherPriority.Background);
+
+            backwardStoryBoard?.Pause();
             Show();
         }
 
+        /// <summary>
+        /// Hiển thị toast (nếu đã có sẵn Data)
+        /// </summary>
         public void Show()
         {
-            ApplyTheme(ToastThemeEnum.Light, data.Type);
-            MessageText.Text = data?.Message;
-
+            ApplyTheme(ToastThemeEnum.Light, Data.Type);
             timer.Start();
 
             StartTransitionIn();
             StartFillOutAnimation();
-
         }
 
+        /// <summary>
+        /// Ẩn toast với animation
+        /// </summary>
         public void Hide()
         {
-            timer.Stop();            
+            timer.Stop();
             StartTransitionOut();
-            currentTime = 0;           
+            currentTime = 0;
         }
 
+        /// <summary>
+        /// Reset trạng thái hiện tại
+        /// </summary>
         public void Reset()
         {
-            
+            Hide();
         }
 
+        /// <summary>
+        /// Đóng và raise sự kiện `OnClose`
+        /// </summary>
         public void Close()
         {
             RaiseEvent(new RoutedEventArgs(OnCloseEvent));
         }
 
-        #region Animation fill out
+        #endregion
+
+        #region Animation tiến trình (progress bar)
+
         public void StartFillOutAnimation()
         {
             Storyboard.SetTarget(fillOutAnimation, ProgressBar);
-            Storyboard.SetTargetProperty(fillOutAnimation
-                , new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
-
+            Storyboard.SetTargetProperty(fillOutAnimation,
+                new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
             fillOutStoryBoard.Begin(ProgressBar, true);
         }
 
-        public void PauseFillOutAnimation()
-        {
-            fillOutStoryBoard?.Pause(ProgressBar);
-        }
+        public void PauseFillOutAnimation() => fillOutStoryBoard?.Pause(ProgressBar);
 
-        public void ResumeFillOutAnimtion()
-        {
-            fillOutStoryBoard?.Resume(ProgressBar);
-        }
-        #endregion Animation fill out
+        public void ResumeFillOutAnimtion() => fillOutStoryBoard?.Resume(ProgressBar);
 
-
-        #region Fill in
         public void StartFillInAnimation()
         {
             Storyboard.SetTarget(fillInStoryBoard, ProgressBar);
-            Storyboard.SetTargetProperty(fillInStoryBoard
-                , new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)")); 
+            Storyboard.SetTargetProperty(fillInStoryBoard,
+                new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
             fillInStoryBoard.Begin(ProgressBar);
         }
-        #endregion Fill in
 
-        #region Transition
+        #endregion
 
+        #region Transition animation in/out
 
-        private void StartTransitionStoryboard(Storyboard storyboard
-            , ObservableCollection<StoryBoardContextItem>? animationContext
-            , FrameworkElement target)
+        private void StartTransitionStoryboard(Storyboard storyboard,
+            ObservableCollection<StoryBoardContextItem>? animationContext,
+            FrameworkElement target)
         {
             if (animationContext?.Count > 0 != true) return;
 
             foreach (var item in animationContext)
             {
-                var animation = item.Animation;
-                var propertyPath = item.PropertyPath;
-
-                Storyboard.SetTarget(animation, target);
-                Storyboard.SetTargetProperty(animation, propertyPath);
+                Storyboard.SetTarget(item.Animation, target);
+                Storyboard.SetTargetProperty(item.Animation, item.PropertyPath);
             }
 
             Timeline.SetDesiredFrameRate(storyboard, 60);
@@ -277,43 +318,37 @@ namespace ToastifyWPF.Controls
         private void StartTransitionIn()
         {
             RaiseEvent(new RoutedEventArgs(OnOpenEvent));
-
-            StartTransitionStoryboard(forwardStoryBoard
-                , StoryBoardContext?.ForwardAnimation
-                , Root);
+            StartTransitionStoryboard(forwardStoryBoard, StoryBoardContext?.ForwardAnimation, Root);
         }
+
         private void StartTransitionOut()
         {
-            backwardStoryBoard.Completed += 
-                (_, __) => RaiseEvent(new RoutedEventArgs(OnCloseEvent));
-
-            StartTransitionStoryboard(backwardStoryBoard
-               , StoryBoardContext?.BackwardAnimation
-               , Root);
+            backwardStoryBoard.Completed += (_, __) =>
+            {
+                RaiseEvent(new RoutedEventArgs(OnCloseEvent));
+            };
+            StartTransitionStoryboard(backwardStoryBoard, StoryBoardContext?.BackwardAnimation, Root);
         }
-        #endregion Transition
 
+        #endregion
 
-        #region Set up
+        #region Setup Animation & Storyboard
+
         private void SetupTransitions()
         {
             StoryBoardContext = StoryBoardContext ?? StoryBoardContext.InitDefault(AnimationDuration);
+
             forwardStoryBoard = new Storyboard();
             backwardStoryBoard = new Storyboard();
 
-            SeedAnimationToStoryBoard(forwardStoryBoard, StoryBoardContext
-                ?.ForwardAnimation
-                ?.Select(item => item.Animation)
-                ?.ToList());
+            SeedAnimationToStoryBoard(forwardStoryBoard,
+                StoryBoardContext?.ForwardAnimation?.Select(item => item.Animation)?.ToList());
 
-            SeedAnimationToStoryBoard(backwardStoryBoard, StoryBoardContext
-                ?.BackwardAnimation
-                ?.Select(item => item.Animation)
-                ?.ToList());
+            SeedAnimationToStoryBoard(backwardStoryBoard,
+                StoryBoardContext?.BackwardAnimation?.Select(item => item.Animation)?.ToList());
         }
 
-        private void SeedAnimationToStoryBoard(Storyboard storyboard
-            , List<AnimationTimeline?>? animations)
+        private void SeedAnimationToStoryBoard(Storyboard storyboard, List<AnimationTimeline?>? animations)
         {
             if (animations?.Count > 0 != true) return;
             foreach (var item in animations)
@@ -332,34 +367,29 @@ namespace ToastifyWPF.Controls
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
                 FillBehavior = FillBehavior.HoldEnd
             };
+
             fillOutStoryBoard = new Storyboard();
             fillOutStoryBoard.Children.Add(fillOutAnimation);
-
-            fillOutStoryBoard.Completed += (s, e) =>
-            {
-                StartFillInAnimation();
-            };
-
+            fillOutStoryBoard.Completed += (s, e) => StartFillInAnimation();
         }
 
         private void SetupFillInStoryboard()
         {
             fillInAnimation = new DoubleAnimation
             {
-                
                 From = 0,
                 To = 10,
                 Duration = DisplayDuration,
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
-                FillBehavior = FillBehavior.HoldEnd
+                FillBehavior = FillBehavior.HoldEnd,
+                BeginTime = DisplayDuration
             };
+
             fillInStoryBoard = new Storyboard();
-            fillInAnimation.BeginTime = DisplayDuration;
             fillInStoryBoard.Children.Add(fillInAnimation);
-
         }
-
 
         #endregion
     }
+
 }

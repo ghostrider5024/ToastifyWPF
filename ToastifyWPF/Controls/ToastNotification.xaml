@@ -131,7 +131,13 @@
                         <ColumnDefinition Width="auto" />
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel Margin="6" Orientation="Horizontal">
+                    <Grid Margin="6">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto" />
+                            <ColumnDefinition Width="8" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
                         <Viewbox Width="20" Height="20">
                             <Canvas Width="24" Height="24">
                                 <Path Fill="{Binding RelativeSource={RelativeSource AncestorType=local:ToastNotification}, Mode=OneWay, Path=ToastNotificationTheme.ForegroundIcon}" Style="{StaticResource Icon}" />
@@ -139,17 +145,18 @@
                         </Viewbox>
 
                         <TextBlock
-                            x:Name="MessageText"
-                            Margin="8,6,6,6"
+                            Grid.Column="2"
+                            Margin="0,6,6,6"
                             VerticalAlignment="Center"
                             FontFamily="Inter"
                             FontSize="14"
                             Foreground="{Binding RelativeSource={RelativeSource AncestorType=local:ToastNotification}, Mode=OneWay, Path=ToastNotificationTheme.Foreground}"
                             RenderOptions.BitmapScalingMode="HighQuality"
                             RenderOptions.EdgeMode="Aliased"
+                            Text="{Binding RelativeSource={RelativeSource AncestorType=local:ToastNotification}, Mode=OneWay, Path=Data.Message}"
                             TextOptions.TextFormattingMode="Display"
                             TextWrapping="Wrap" />
-                    </StackPanel>
+                    </Grid>
                     <Button
                         Grid.Column="1"
                         Margin="0,0,2,0"

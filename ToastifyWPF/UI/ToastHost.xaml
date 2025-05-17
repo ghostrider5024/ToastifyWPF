@@ -12,5 +12,9 @@
     <StackPanel
         x:Name="ToastPanel"
         HorizontalAlignment="Right"
-        VerticalAlignment="Top" />
+        VerticalAlignment="Top"
+        VirtualizingPanel.IsVirtualizing="True"
+        VirtualizingPanel.VirtualizationMode="Recycling"
+        
+        />
 </UserControl>

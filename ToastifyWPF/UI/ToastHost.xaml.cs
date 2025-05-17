@@ -19,7 +19,7 @@ namespace ToastifyWPF.UI
                 nameof(MaxToastCount),
                 typeof(int?),
                 typeof(ToastHost),
-                new PropertyMetadata(null)); 
+                new PropertyMetadata(10)); 
 
         public int? MaxToastCount
         {

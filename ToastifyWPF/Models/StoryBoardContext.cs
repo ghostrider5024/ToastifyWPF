@@ -32,7 +32,7 @@ namespace ToastifyWPF.Models
                    {
                         EasingFunction = new BackEase
                         {
-                            EasingMode = EasingMode.EaseInOut,
+                            EasingMode = EasingMode.EaseOut,
                             Amplitude = 1.2
                         }
                    },

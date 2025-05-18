@@ -167,7 +167,7 @@ namespace ToastifyWPF.Controls
 
         private void ApplyTheme(ToastThemeEnum theme, ToastTypeEnum type)
         {
-            ToastNotificationTheme = ToastNotificationTheme ?? ToastNotificationTheme.InitTheme(theme, type);
+            ToastNotificationTheme = ToastNotificationTheme.InitTheme(theme, type);
         }
 
         private void InitTimer()

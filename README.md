@@ -44,6 +44,26 @@ public class HelloWorld
 
         ToastNotificationManager.Instance.Show(notification);
     }
+
+    public void DoSomething2()
+    {
+        var notification = new ToastNotificationData
+        {
+            Message = "Đăng nhập thành công!" + " " + count++,
+            Type = ToastTypeEnum.Info,
+            Duration = TimeSpan.FromSeconds(10),
+            UpdateMessageAction = (currentMessage, currentTime) =>
+            {
+                return $"Bạn còn {currentTime} giây";
+            },
+            FinishAction = () =>
+            {
+                MessageBox.Show("heheboi");
+            }
+
+        };
+        ToastNotificationManager.Instance.Show(notification);
+    }
 }
 ```
 

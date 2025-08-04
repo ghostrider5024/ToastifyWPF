@@ -125,3 +125,15 @@ public class HelloWorld
 | `PauseFillOutAnimation()`     | `void`      | Tạm dừng animation fill out.                                |
 | `ResumeFillOutAnimtion()`     | `void`      | Tiếp tục animation fill out.                                |
 | `StartFillInAnimation()`      | `void`      | Bắt đầu animation fill in (phần cuối progress bar).         |
+
+## 🧾 ToastNotificationData
+
+Đây là model dùng để cấu hình và truyền dữ liệu cho Toast Notification trong WPF. Class này hỗ trợ các tính năng như cập nhật nội dung động, thời gian hiển thị tùy chỉnh, và callback khi toast hoàn thành.
+
+| Property Name         | Type                          | Description                                                                |
+| --------------------- | ----------------------------- | -------------------------------------------------------------------------- |
+| `Message`             | `string`                      | Nội dung chính của toast, có thể binding và cập nhật động.                 |
+| `Type`                | `ToastTypeEnum`               | Loại thông báo (thông báo thường, lỗi, cảnh báo, thành công, v.v.).        |
+| `Duration`            | `TimeSpan?`                   | Thời gian hiển thị toast (nếu null sẽ dùng mặc định của hệ thống).         |
+| `UpdateMessageAction` | `Func<string?, int, string>?` | Hàm callback dùng để cập nhật nội dung `Message` mỗi giây (hoặc mỗi tick). |
+| `FinishAction`        | `Action?`                     | Callback khi toast hoàn tất và biến mất khỏi UI.                           |

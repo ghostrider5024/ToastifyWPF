@@ -12,6 +12,7 @@
     mc:Ignorable="d">
     <StackPanel>
         <Button Click="Button_Click">Add</Button>
+        <Button Click="Button_Click_1">Action add</Button>
         <ui:ToastHost />
     </StackPanel>
 </Window>

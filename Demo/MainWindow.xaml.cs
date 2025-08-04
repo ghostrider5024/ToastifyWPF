@@ -25,5 +25,25 @@ namespace Demo
             };
             ToastNotificationManager.Instance.Show(notification);
         }
+
+        private void Button_Click_1(object sender, RoutedEventArgs e)
+        {
+            var notification = new ToastNotificationData
+            {
+                Message = "Đăng nhập thành công!" + " " + count++,
+                Type = ToastTypeEnum.Info,
+                Duration = TimeSpan.FromSeconds(10),
+                UpdateMessageAction = (currentMessage, currentTime) =>
+                {
+                    return $"Bạn còn {currentTime} giây";
+                },
+                FinishAction = () =>
+                {
+                    MessageBox.Show("heheboi");
+                }
+                
+            };
+            ToastNotificationManager.Instance.Show(notification);
+        }
     }
 }

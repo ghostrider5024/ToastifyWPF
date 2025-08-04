@@ -16,6 +16,7 @@ namespace ToastifyWPF.Controls
     /// </summary>
     public partial class ToastNotification : UserControl
     {
+        readonly TimeSpan DEFAULT_DISPLAY_DURATION = TimeSpan.FromSeconds(3);
         #region Dependency Properties (Các thuộc tính có thể binding)
 
         /// <summary>
@@ -183,6 +184,8 @@ namespace ToastifyWPF.Controls
 
                 currentTime += intervalTime;
 
+                UpdateMessageOnTick();
+
                 if (currentTime >= DisplayDuration.TotalMilliseconds)
                 {
                     Hide();
@@ -223,6 +226,9 @@ namespace ToastifyWPF.Controls
         {
             Root.Width = MinWidth;
             Data = toastNotificationData;
+            DisplayDuration = toastNotificationData.Duration ?? DEFAULT_DISPLAY_DURATION;
+            SetupFillOutStoryboard();
+
 
             Dispatcher.BeginInvoke(() =>
             {
@@ -240,6 +246,7 @@ namespace ToastifyWPF.Controls
         {
             ApplyTheme(ToastThemeEnum.Light, Data.Type);
             timer.Start();
+            UpdateMessageOnTick();
 
             StartTransitionIn();
             StartFillOutAnimation();
@@ -252,7 +259,7 @@ namespace ToastifyWPF.Controls
         {
             timer.Stop();
             StartTransitionOut();
-            currentTime = 0;
+            currentTime = 0;            
         }
 
         /// <summary>
@@ -261,6 +268,8 @@ namespace ToastifyWPF.Controls
         public void Reset()
         {
             Hide();
+            // Chạy hàm sau khi hoàn tất animation
+            RunFinishActionOnStop();
         }
 
         /// <summary>
@@ -272,6 +281,25 @@ namespace ToastifyWPF.Controls
         }
 
         #endregion
+
+        #region Chạy các hàm tùy chọn
+        #region Cập nhật message
+        private void UpdateMessageOnTick()
+        {
+            if (Data?.UpdateMessageAction == null)
+                return;
+           
+            Data.Message = Data?.UpdateMessageAction(Data.Message
+                    , (int)Math.Ceiling((DisplayDuration.TotalMilliseconds - currentTime) / 1000))
+                ?? "";
+        }
+        #endregion Cập nhật message
+
+        private void RunFinishActionOnStop()
+        {
+            Data.FinishAction?.Invoke();
+        }
+        #endregion Chạy các hàm tùy chọn
 
         #region Animation tiến trình (progress bar)
 
@@ -359,6 +387,13 @@ namespace ToastifyWPF.Controls
 
         private void SetupFillOutStoryboard()
         {
+            if (fillOutStoryBoard != null)
+            {
+                fillOutAnimation = null;
+                fillOutStoryBoard.Stop();
+                fillOutStoryBoard.Completed -= OnFillOutCompleted;
+            }
+
             fillOutAnimation = new DoubleAnimation
             {
                 From = 1,
@@ -370,7 +405,7 @@ namespace ToastifyWPF.Controls
 
             fillOutStoryBoard = new Storyboard();
             fillOutStoryBoard.Children.Add(fillOutAnimation);
-            fillOutStoryBoard.Completed += (s, e) => StartFillInAnimation();
+            fillOutStoryBoard.Completed += OnFillOutCompleted;
         }
 
         private void SetupFillInStoryboard()
@@ -389,6 +424,10 @@ namespace ToastifyWPF.Controls
             fillInStoryBoard.Children.Add(fillInAnimation);
         }
 
+        private void OnFillOutCompleted(object? sender, EventArgs e)
+        {
+            StartFillInAnimation();
+        }
         #endregion
     }
 

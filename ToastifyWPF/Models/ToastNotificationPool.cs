@@ -18,8 +18,7 @@ namespace ToastifyWPF.Models
 
         public void Return(ToastNotification toast)
         {
-            // Optional: reset nội dung nếu cần
-            toast.Reset();
+            toast.ResetForPool();
             _pool.Push(toast);
         }
 

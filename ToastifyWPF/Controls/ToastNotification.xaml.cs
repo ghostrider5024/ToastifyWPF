@@ -5,6 +5,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows;
 
+using System.Diagnostics;
+using System.Windows.Media;
+
 using ToastifyWPF.Models;
 using ToastifyWPF.Enums;
 
@@ -87,9 +90,9 @@ namespace ToastifyWPF.Controls
         /// <summary>
         /// Dữ liệu nội dung của thông báo (text, loại thông báo, v.v.)
         /// </summary>
-        public ToastNotificationData Data
+        public ToastNotificationData? Data
         {
-            get => (ToastNotificationData)GetValue(DataProperty);
+            get => (ToastNotificationData?)GetValue(DataProperty);
             set => SetValue(DataProperty, value);
         }
 
@@ -127,19 +130,24 @@ namespace ToastifyWPF.Controls
 
         #region Biến cục bộ
 
-        DispatcherTimer timer;
-        private int currentTime = 0;
-        private readonly int intervalTime = 1000; // ms
-        private bool mouseEntering = false;
-        private bool isFirstRender = true;
+        private const int TIMER_INTERVAL_MILLISECONDS = 100;
+        private DispatcherTimer timer = null!;
+        private readonly Stopwatch elapsed = new();
+        private int lastRemainingSeconds = -1;
+        private bool isShown;
+        private bool isHovered;
+        private bool isClickPaused;
+        private bool isPaused;
+        private bool transitionOutStarted;
+        private bool finishActionInvoked;
 
-        private Storyboard fillOutStoryBoard;
-        private Storyboard fillInStoryBoard;
-        private Storyboard forwardStoryBoard;
-        private Storyboard backwardStoryBoard;
+        private Storyboard fillOutStoryBoard = null!;
+        private Storyboard fillInStoryBoard = null!;
+        private Storyboard forwardStoryBoard = null!;
+        private Storyboard backwardStoryBoard = null!;
 
-        private AnimationTimeline fillOutAnimation;
-        private AnimationTimeline fillInAnimation;
+        private AnimationTimeline fillOutAnimation = null!;
+        private AnimationTimeline fillInAnimation = null!;
         #endregion
 
         #region Constructor
@@ -173,24 +181,12 @@ namespace ToastifyWPF.Controls
 
         private void InitTimer()
         {
-            timer = new DispatcherTimer
+            timer = new DispatcherTimer(DispatcherPriority.Background, Dispatcher)
             {
-                Interval = TimeSpan.FromMilliseconds(intervalTime)
+                Interval = TimeSpan.FromMilliseconds(TIMER_INTERVAL_MILLISECONDS)
             };
 
-            timer.Tick += (s, e) =>
-            {
-                if (mouseEntering) return;
-
-                currentTime += intervalTime;
-
-                UpdateMessageOnTick();
-
-                if (currentTime >= DisplayDuration.TotalMilliseconds)
-                {
-                    Hide();
-                }
-            };
+            timer.Tick += (_, _) => UpdateCountdown();
         }
         #endregion
 
@@ -198,21 +194,100 @@ namespace ToastifyWPF.Controls
 
         private void CloseButton_Click(object sender, RoutedEventArgs e)
         {
+            e.Handled = true;
             Reset();
         }
 
         protected override void OnMouseEnter(MouseEventArgs e)
         {
             base.OnMouseEnter(e);
-            mouseEntering = true;
-            PauseFillOutAnimation();
+            isHovered = true;
+            UpdatePauseState();
         }
 
         protected override void OnMouseLeave(MouseEventArgs e)
         {
             base.OnMouseLeave(e);
-            mouseEntering = false;
+            isHovered = false;
+            UpdatePauseState();
+        }
+
+        protected override void OnPreviewMouseLeftButtonUp(MouseButtonEventArgs e)
+        {
+            base.OnPreviewMouseLeftButtonUp(e);
+
+            if (FindVisualParent<Button>(e.OriginalSource as DependencyObject) != null)
+                return;
+
+            if (Data?.CloseOnClick == true)
+            {
+                Reset();
+                e.Handled = true;
+                return;
+            }
+
+            if (Data?.PauseOnClick == true)
+            {
+                isClickPaused = !isClickPaused;
+                UpdatePauseState();
+                e.Handled = true;
+            }
+        }
+
+        private void UpdatePauseState()
+        {
+            var shouldPause = isShown &&
+                ((isHovered && Data?.PauseOnHover == true) || isClickPaused);
+
+            if (shouldPause == isPaused)
+                return;
+
+            isPaused = shouldPause;
+            if (isPaused)
+            {
+                elapsed.Stop();
+                timer.Stop();
+                PauseFillOutAnimation();
+                return;
+            }
+
+            elapsed.Start();
+            timer.Start();
             ResumeFillOutAnimtion();
+            UpdateCountdown();
+        }
+
+        private void UpdateCountdown()
+        {
+            if (!isShown || isPaused)
+                return;
+
+            var elapsedTime = elapsed.Elapsed;
+            var remainingSeconds = Math.Max(0,
+                (int)Math.Ceiling((DisplayDuration - elapsedTime).TotalSeconds));
+
+            if (remainingSeconds != lastRemainingSeconds)
+            {
+                lastRemainingSeconds = remainingSeconds;
+                UpdateMessageOnTick(remainingSeconds);
+            }
+
+            if (elapsedTime >= DisplayDuration)
+                Hide();
+        }
+
+        private static T? FindVisualParent<T>(DependencyObject? child)
+            where T : DependencyObject
+        {
+            while (child != null)
+            {
+                if (child is T parent)
+                    return parent;
+
+                child = VisualTreeHelper.GetParent(child);
+            }
+
+            return null;
         }
 
         #endregion
@@ -224,18 +299,16 @@ namespace ToastifyWPF.Controls
         /// </summary>
         public void Show(ToastNotificationData toastNotificationData)
         {
+            ArgumentNullException.ThrowIfNull(toastNotificationData);
+
             Root.Width = MinWidth;
             Data = toastNotificationData;
-            DisplayDuration = toastNotificationData.Duration ?? DEFAULT_DISPLAY_DURATION;
-            SetupFillOutStoryboard();
-
 
             Dispatcher.BeginInvoke(() =>
             {
                 Root.Width = double.NaN;
             }, DispatcherPriority.Background);
 
-            backwardStoryBoard?.Pause();
             Show();
         }
 
@@ -244,12 +317,28 @@ namespace ToastifyWPF.Controls
         /// </summary>
         public void Show()
         {
+            if (Data == null)
+                return;
+
+            DisplayDuration = NormalizeDuration(Data.Duration);
+            SetupFillOutStoryboard();
+
+            timer.Stop();
+            lastRemainingSeconds = -1;
+            isShown = true;
+            isHovered = false;
+            isClickPaused = false;
+            isPaused = false;
+            transitionOutStarted = false;
+            finishActionInvoked = false;
+
             ApplyTheme(ToastThemeEnum.Light, Data.Type);
-            timer.Start();
-            UpdateMessageOnTick();
 
             StartTransitionIn();
+            elapsed.Restart();
             StartFillOutAnimation();
+            timer.Start();
+            UpdateCountdown();
         }
 
         /// <summary>
@@ -257,9 +346,18 @@ namespace ToastifyWPF.Controls
         /// </summary>
         public void Hide()
         {
+            if (!isShown || transitionOutStarted)
+                return;
+
             timer.Stop();
+            elapsed.Stop();
+            isShown = false;
+            isPaused = false;
+            transitionOutStarted = true;
+            // Keep the last animated value during the exit transition. Stop() would
+            // remove the animation and restore ScaleX=1, making the bar refill.
+            fillOutStoryBoard?.Pause(ProgressBar);
             StartTransitionOut();
-            currentTime = 0;            
         }
 
         /// <summary>
@@ -273,38 +371,68 @@ namespace ToastifyWPF.Controls
         }
 
         /// <summary>
+        /// Reset ngay toast đã được trả về pool, không chạy animation trên control đã tháo khỏi cây UI.
+        /// </summary>
+        internal void ResetForPool()
+        {
+            timer.Stop();
+            elapsed.Reset();
+            fillOutStoryBoard?.Stop(ProgressBar);
+            isShown = false;
+            isHovered = false;
+            isClickPaused = false;
+            isPaused = false;
+            transitionOutStarted = true;
+            backwardStoryBoard.Completed -= OnTransitionOutCompleted;
+            ProgressScale.ScaleX = 1;
+            Root.Opacity = 1;
+            SlideTransform.X = 100;
+            RunFinishActionOnStop();
+        }
+
+        /// <summary>
         /// Đóng và raise sự kiện `OnClose`
         /// </summary>
         public void Close()
         {
-            RaiseEvent(new RoutedEventArgs(OnCloseEvent));
+            Reset();
         }
 
         #endregion
 
         #region Chạy các hàm tùy chọn
         #region Cập nhật message
-        private void UpdateMessageOnTick()
+        private void UpdateMessageOnTick(int remainingSeconds)
         {
             if (Data?.UpdateMessageAction == null)
                 return;
-           
-            Data.Message = Data?.UpdateMessageAction(Data.Message
-                    , (int)Math.Ceiling((DisplayDuration.TotalMilliseconds - currentTime) / 1000))
-                ?? "";
+
+            Data.Message = Data.UpdateMessageAction(Data.Message, remainingSeconds) ?? "";
         }
         #endregion Cập nhật message
 
         private void RunFinishActionOnStop()
         {
-            Data.FinishAction?.Invoke();
+            if (finishActionInvoked)
+                return;
+
+            finishActionInvoked = true;
+            Data?.FinishAction?.Invoke();
         }
         #endregion Chạy các hàm tùy chọn
+
+        private TimeSpan NormalizeDuration(TimeSpan? duration)
+        {
+            return duration is { } value && value > TimeSpan.Zero
+                ? value
+                : DEFAULT_DISPLAY_DURATION;
+        }
 
         #region Animation tiến trình (progress bar)
 
         public void StartFillOutAnimation()
         {
+            ProgressScale.ScaleX = 1;
             Storyboard.SetTarget(fillOutAnimation, ProgressBar);
             Storyboard.SetTargetProperty(fillOutAnimation,
                 new PropertyPath("(UIElement.RenderTransform).(ScaleTransform.ScaleX)"));
@@ -351,11 +479,21 @@ namespace ToastifyWPF.Controls
 
         private void StartTransitionOut()
         {
-            backwardStoryBoard.Completed += (_, __) =>
+            if (StoryBoardContext?.BackwardAnimation?.Count > 0 != true)
             {
-                RaiseEvent(new RoutedEventArgs(OnCloseEvent));
-            };
+                OnTransitionOutCompleted(this, EventArgs.Empty);
+                return;
+            }
+
+            backwardStoryBoard.Completed -= OnTransitionOutCompleted;
+            backwardStoryBoard.Completed += OnTransitionOutCompleted;
             StartTransitionStoryboard(backwardStoryBoard, StoryBoardContext?.BackwardAnimation, Root);
+        }
+
+        private void OnTransitionOutCompleted(object? sender, EventArgs e)
+        {
+            backwardStoryBoard.Completed -= OnTransitionOutCompleted;
+            RaiseEvent(new RoutedEventArgs(OnCloseEvent));
         }
 
         #endregion
@@ -389,9 +527,8 @@ namespace ToastifyWPF.Controls
         {
             if (fillOutStoryBoard != null)
             {
-                fillOutAnimation = null;
+                fillOutAnimation = null!;
                 fillOutStoryBoard.Stop();
-                fillOutStoryBoard.Completed -= OnFillOutCompleted;
             }
 
             fillOutAnimation = new DoubleAnimation
@@ -399,13 +536,11 @@ namespace ToastifyWPF.Controls
                 From = 1,
                 To = 0,
                 Duration = DisplayDuration,
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut },
                 FillBehavior = FillBehavior.HoldEnd
             };
 
             fillOutStoryBoard = new Storyboard();
             fillOutStoryBoard.Children.Add(fillOutAnimation);
-            fillOutStoryBoard.Completed += OnFillOutCompleted;
         }
 
         private void SetupFillInStoryboard()
@@ -424,10 +559,6 @@ namespace ToastifyWPF.Controls
             fillInStoryBoard.Children.Add(fillInAnimation);
         }
 
-        private void OnFillOutCompleted(object? sender, EventArgs e)
-        {
-            StartFillInAnimation();
-        }
         #endregion
     }
 

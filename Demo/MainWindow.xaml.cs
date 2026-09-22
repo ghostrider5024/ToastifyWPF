@@ -20,7 +20,7 @@ namespace Demo
         {
             var notification = new ToastNotificationData
             {
-                Message = "Đăng nhập thành công!" + " " + count++,
+                Message = "Đăng nhập thành côngdsadsadsasdasasdsadsadsadsadsadsadsassssdas!" + " " + count++,
                 Type = ToastTypeEnum.Info
             };
             ToastNotificationManager.Instance.Show(notification);

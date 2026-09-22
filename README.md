@@ -52,6 +52,7 @@ public class HelloWorld
             Message = "Đăng nhập thành công!" + " " + count++,
             Type = ToastTypeEnum.Info,
             Duration = TimeSpan.FromSeconds(10),
+            PauseOnClick = true,
             UpdateMessageAction = (currentMessage, currentTime) =>
             {
                 return $"Bạn còn {currentTime} giây";
@@ -77,8 +78,8 @@ public class HelloWorld
 
 | Tên Property    | Kiểu dữ liệu | Mặc định | Mô tả                                                                                |
 | --------------- | ------------ | -------- | ------------------------------------------------------------------------------------ |
-| `MinWidthItem`  | `double`     | `310`    | Chiều rộng tối thiểu của mỗi toast.                                                  |
-| `MaxWidthItem`  | `double`     | `500`    | Chiều rộng tối đa của mỗi toast.                                                     |
+| `MinWidthItem`  | `double`     | `260`    | Chiều rộng tối thiểu của mỗi toast.                                                  |
+| `MaxWidthItem`  | `double`     | `380`    | Chiều rộng tối đa của mỗi toast.                                                     |
 | `MaxToastCount` | `int?`       | `10`     | Số lượng toast hiển thị cùng lúc. Nếu vượt quá, toast cũ nhất sẽ bị loại bỏ tự động. |
 
 ---
@@ -135,5 +136,8 @@ public class HelloWorld
 | `Message`             | `string`                      | Nội dung chính của toast, có thể binding và cập nhật động.                 |
 | `Type`                | `ToastTypeEnum`               | Loại thông báo (thông báo thường, lỗi, cảnh báo, thành công, v.v.).        |
 | `Duration`            | `TimeSpan?`                   | Thời gian hiển thị toast (nếu null sẽ dùng mặc định của hệ thống).         |
-| `UpdateMessageAction` | `Func<string?, int, string>?` | Hàm callback dùng để cập nhật nội dung `Message` mỗi giây (hoặc mỗi tick). |
+| `PauseOnHover`        | `bool`                        | Tạm dừng countdown khi rê chuột lên toast (mặc định `true`).              |
+| `PauseOnClick`        | `bool`                        | Click nội dung để tạm dừng/tiếp tục countdown (mặc định `false`).         |
+| `CloseOnClick`        | `bool`                        | Click nội dung để đóng toast; được ưu tiên hơn `PauseOnClick`.            |
+| `UpdateMessageAction` | `Func<string?, int, string>?` | Cập nhật `Message` khi số giây còn lại thay đổi.                          |
 | `FinishAction`        | `Action?`                     | Callback khi toast hoàn tất và biến mất khỏi UI.                           |

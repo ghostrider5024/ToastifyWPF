@@ -33,7 +33,7 @@ namespace ToastifyWPF.UI
                 nameof(MinWidthItem),
                 typeof(double),
                 typeof(ToastHost),
-                new PropertyMetadata(310.0));
+                new PropertyMetadata(0.0));
 
         /// <summary>
         /// Chiều rộng tối đa của mỗi toast notification.
@@ -52,7 +52,7 @@ namespace ToastifyWPF.UI
                 nameof(MaxWidthItem),
                 typeof(double),
                 typeof(ToastHost),
-                new PropertyMetadata(500.0));
+                new PropertyMetadata(380.0));
 
         /// <summary>
         /// Số lượng toast tối đa được hiển thị cùng lúc. Nếu vượt quá thì toast cũ nhất sẽ bị remove.

@@ -16,6 +16,6 @@
         <Button Click="Button_Click_3">Add Warning</Button>
         <Button Click="Button_Click_4">Add Error</Button>
         <Button Click="Button_Click_1">Action add</Button>
-        <ui:ToastHost />
+        <ui:ToastHost HorizontalAlignment="Right" />
     </StackPanel>
 </Window>

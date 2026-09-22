@@ -301,13 +301,7 @@ namespace ToastifyWPF.Controls
         {
             ArgumentNullException.ThrowIfNull(toastNotificationData);
 
-            Root.Width = MinWidth;
             Data = toastNotificationData;
-
-            Dispatcher.BeginInvoke(() =>
-            {
-                Root.Width = double.NaN;
-            }, DispatcherPriority.Background);
 
             Show();
         }

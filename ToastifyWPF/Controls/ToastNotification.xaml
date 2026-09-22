@@ -9,6 +9,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     Margin="0,0,0,15"
+    HorizontalAlignment="Right"
+    MaxWidth="380"
     d:DesignHeight="450"
     d:DesignWidth="800"
     SnapsToDevicePixels="True"
@@ -89,7 +91,7 @@
     </UserControl.Resources>
     <Border
         x:Name="Root"
-        MinWidth="260"
+        HorizontalAlignment="Right"
         MinHeight="65"
         Background="{Binding RelativeSource={RelativeSource AncestorType=local:ToastNotification}, Mode=OneWay, Path=ToastNotificationTheme.Background}"
         BorderBrush="#18000000"
